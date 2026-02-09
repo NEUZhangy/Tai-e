@@ -53,6 +53,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import pascal.taie.util.collection.Streams;
 
 import static soot.SootClass.HIERARCHY;
 
@@ -72,7 +75,29 @@ public class SootWorldBuilder extends AbstractWorldBuilder {
         // set arguments and run soot
         List<String> args = new ArrayList<>();
         // set class path
-        Collections.addAll(args, "-cp", getClassPath(options));
+        String classPath;
+        if (!options.getsootClassPath().isEmpty()) {
+            // When soot-class-path is provided, check if it points to jmods (Java 9+)
+            String sootCP = String.join(File.pathSeparator, options.getsootClassPath());
+            // If path contains jmods directory, use VIRTUAL_FS_FOR_JDK for Java 9+
+            if (sootCP.contains("jmods")) {
+                classPath = Streams.concat(
+                                java.util.stream.Stream.of("VIRTUAL_FS_FOR_JDK"),
+                                options.getAppClassPath().stream(),
+                                options.getClassPath().stream())
+                        .collect(Collectors.joining(File.pathSeparator));
+            } else {
+                classPath = Streams.concat(
+                                options.getsootClassPath().stream(),
+                                options.getAppClassPath().stream(),
+                                options.getClassPath().stream())
+                        .collect(Collectors.joining(File.pathSeparator));
+            }
+        } else {
+            // Use default class path (includes JRE + app classes)
+            classPath = getClassPath(options);
+        }
+        Collections.addAll(args, "-cp", classPath);
         // set main class
         String mainClass = options.getMainClass();
         if (mainClass != null) {

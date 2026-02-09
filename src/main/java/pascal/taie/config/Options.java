@@ -109,6 +109,18 @@ public class Options implements Serializable {
 
     @JsonProperty
     @JsonSerialize(contentUsing = FilePathSerializer.class)
+    @Option(names = {"-soot", "--soot-class-path"},
+            description = "Class path. This option can be repeated"
+                    + " multiple times to specify multiple paths.",
+            converter = ClassPathConverter.class)
+    private List<String> sootclassPath = List.of();
+
+    public List<String> getsootClassPath() {
+        return sootclassPath;
+    }
+
+    @JsonProperty
+    @JsonSerialize(contentUsing = FilePathSerializer.class)
     @Option(names = {"-acp", "--app-class-path"},
             description = "Application class path. This option can be repeated"
                     + " multiple times to specify multiple paths.",
@@ -505,6 +517,7 @@ public class Options implements Serializable {
                 "optionsFile=" + optionsFile +
                 ", printHelp=" + printHelp +
                 ", classPath='" + classPath + '\'' +
+                ", soot = ' " + sootclassPath + '\'' +
                 ", appClassPath='" + appClassPath + '\'' +
                 ", mainClass='" + mainClass + '\'' +
                 ", inputClasses=" + inputClasses +
